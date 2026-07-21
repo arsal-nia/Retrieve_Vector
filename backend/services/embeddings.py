@@ -101,16 +101,6 @@ class EmbeddingService:
 
         return self._model
 
-
-# ============================================================
-# Create Global Instance
-# ============================================================
-
-embedding_service = EmbeddingService()
-    # ============================================================
-    # Generate Embedding for a Single Query
-    # ============================================================
-
     def embed_query(self, query: str) -> List[float]:
         """
         Generate an embedding for a single query.
@@ -392,3 +382,6 @@ embedding_service = EmbeddingService()
             }
 
 
+# global instance of EmbeddingService for use across the application
+
+embedding_service = EmbeddingService()
