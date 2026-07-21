@@ -1,380 +1,136 @@
 """
 embeddings.py
 ------------------------
-
 This module is responsible for generating vector embeddings
 for text using the Sentence Transformer model.
-
-Responsibilities
-----------------
-1. Load embedding model only once.
-2. Generate embeddings for queries.
-3. Generate embeddings for documents.
-4. Support batch embedding generation.
-5. Provide helper methods for RAG Engine.
-
-Used By
--------
-rag_engine.py
-vector_store.py
-document_parser.py
 """
-
-# ============================================================
-# Imports
-# ============================================================
 
 import logging
 from typing import List
-
 import torch
 from sentence_transformers import SentenceTransformer
 
-# ============================================================
-# Logging Configuration
-# ============================================================
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
-
+# Rely on centralized logging configured by main.py
 logger = logging.getLogger(__name__)
 
-# ============================================================
-# Model Configuration
-# ============================================================
-
-# Small, fast and widely used embedding model
+# Fast and widely used embedding model
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 # Automatically use GPU if available
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
-logger.info(f"Embedding device selected: {DEVICE}")
-
-# ============================================================
-# Embedding Service
-# ============================================================
+logger.info(f"Embedding service target hardware device: {DEVICE}")
 
 
 class EmbeddingService:
     """
     Singleton service for generating embeddings.
-
-    The SentenceTransformer model is loaded only once
-    during application startup.
-
-    Other modules will import this class and use its
-    methods instead of loading the model again.
+    The SentenceTransformer model is loaded only once during application startup.
     """
 
     _instance = None
     _model = None
 
     def __new__(cls):
-        """
-        Create only one instance of EmbeddingService.
-        """
-
+        """Create or return the single instance of EmbeddingService."""
         if cls._instance is None:
-            logger.info("Creating EmbeddingService instance...")
-
+            logger.info("Initializing unique EmbeddingService instance...")
             cls._instance = super().__new__(cls)
-
-            logger.info("Loading embedding model...")
-
+            logger.info(f"Loading transformer model layer: {MODEL_NAME}")
             cls._model = SentenceTransformer(
                 MODEL_NAME,
                 device=DEVICE
             )
-
-            logger.info("Embedding model loaded successfully.")
-
+            logger.info("Embedding model loaded successfully into memory.")
         return cls._instance
 
     @property
-    def model(self):
-        """
-        Return loaded SentenceTransformer model.
-        """
-
+    def model(self) -> SentenceTransformer:
+        """Return loaded SentenceTransformer model instance."""
         return self._model
 
     def embed_query(self, query: str) -> List[float]:
-        """
-        Generate an embedding for a single query.
-
-        Parameters
-        ----------
-        query : str
-            User's question or search query.
-
-        Returns
-        -------
-        List[float]
-            Vector representation of the query.
-        """
-
+        """Generate an embedding for a single user query string."""
         if not isinstance(query, str):
             raise TypeError("Query must be a string.")
 
         query = query.strip()
-
         if len(query) == 0:
             raise ValueError("Query cannot be empty.")
 
-        logger.info("Generating query embedding...")
-
+        logger.debug("Generating single query embedding vector...")
         embedding = self.model.encode(
             query,
             convert_to_numpy=True,
             normalize_embeddings=True
         )
-
-        logger.info("Query embedding generated successfully.")
-
         return embedding.tolist()
 
-    # ============================================================
-    # Generate Embeddings for Multiple Documents
-    # ============================================================
-
-    def embed_documents(
-        self,
-        documents: List[str]
-    ) -> List[List[float]]:
+    def embed_documents(self, documents: List[str]) -> List[List[float]]:
         """
         Generate embeddings for multiple documents.
-
-        Parameters
-        ----------
-        documents : List[str]
-
-        Returns
-        -------
-        List[List[float]]
+        Maintains an identical list index length to prevent vector store insertion mismatches.
         """
-
         if not isinstance(documents, list):
             raise TypeError("Documents must be provided as a list.")
-
         if len(documents) == 0:
             raise ValueError("Document list cannot be empty.")
 
-        cleaned_documents = []
+        # Strict validation ensuring data integrity across indices
+        for i, doc in enumerate(documents):
+            if not isinstance(doc, str):
+                raise TypeError(f"Document at index {i} must be a string.")
+            if len(doc.strip()) == 0:
+                raise ValueError(f"Document at index {i} cannot be empty or pure whitespace.")
 
-        for document in documents:
-
-            if not isinstance(document, str):
-                raise TypeError(
-                    "Each document must be a string."
-                )
-
-            document = document.strip()
-
-            if len(document) == 0:
-                continue
-
-            cleaned_documents.append(document)
-
-        if len(cleaned_documents) == 0:
-            raise ValueError(
-                "No valid documents found."
-            )
-
-        logger.info(
-            f"Generating embeddings for "
-            f"{len(cleaned_documents)} documents..."
-        )
-
+        logger.info(f"Generating embeddings for array of {len(documents)} document blocks...")
         embeddings = self.model.encode(
-            cleaned_documents,
+            documents,
             convert_to_numpy=True,
             normalize_embeddings=True,
             show_progress_bar=False
         )
-
-        logger.info("Document embeddings generated.")
-
         return embeddings.tolist()
 
-    # ============================================================
-    # Batch Embedding Generator
-    # ============================================================
-
-    def batch_embed(
-        self,
-        documents: List[str],
-        batch_size: int = 32
-    ) -> List[List[float]]:
-        """
-        Generate embeddings in batches.
-
-        Useful for large PDF collections.
-
-        Parameters
-        ----------
-        documents : List[str]
-
-        batch_size : int
-
-        Returns
-        -------
-        List[List[float]]
-        """
-
+    def batch_embed(self, documents: List[str], batch_size: int = 32) -> List[List[float]]:
+        """Generate embeddings in chunks safely. Optimized for large document volumes."""
         if batch_size <= 0:
-            raise ValueError(
-                "Batch size must be greater than zero."
-            )
+            raise ValueError("Batch size must be greater than zero.")
 
-        logger.info(
-            f"Batch embedding started "
-            f"(Batch Size = {batch_size})"
-        )
-
+        logger.info(f"Batch embedding ingestion sequence started (Batch Size = {batch_size})")
         embeddings = self.model.encode(
             documents,
             batch_size=batch_size,
             convert_to_numpy=True,
             normalize_embeddings=True,
-            show_progress_bar=True
+            show_progress_bar=False
         )
-
-        logger.info("Batch embedding completed.")
-
+        logger.info("Batch embedding generation completed successfully.")
         return embeddings.tolist()
 
-    # ============================================================
-    # Embedding Dimension
-    # ============================================================
-
     def embedding_dimension(self) -> int:
-        """
-        Return the dimension of the embedding model.
-
-        Returns
-        -------
-        int
-        """
-
+        """Return the dimension output layout of the model (e.g., 384 for MiniLM)."""
         return self.model.get_sentence_embedding_dimension()
 
-    # ============================================================
-    # Model Information
-    # ============================================================
-
     def model_info(self) -> dict:
-        """
-        Return information about
-        the loaded embedding model.
-        """
-
+        """Return general blueprint info about the loaded model architecture."""
         return {
             "model_name": MODEL_NAME,
             "device": DEVICE,
-            "embedding_dimension":
-                self.embedding_dimension()
+            "embedding_dimension": self.embedding_dimension()
         }
-    # ============================================================
-    # Validate Embedding
-    # ============================================================
-
-    def validate_embedding(self, embedding: List[float]) -> bool:
-        """
-        Validate that an embedding has the correct dimension.
-
-        Parameters
-        ----------
-        embedding : List[float]
-
-        Returns
-        -------
-        bool
-        """
-
-        if not isinstance(embedding, list):
-            return False
-
-        return len(embedding) == self.embedding_dimension()
-
-    # ============================================================
-    # Validate Multiple Embeddings
-    # ============================================================
-
-    def validate_embeddings(
-        self,
-        embeddings: List[List[float]]
-    ) -> bool:
-        """
-        Validate a list of embeddings.
-
-        Parameters
-        ----------
-        embeddings : List[List[float]]
-
-        Returns
-        -------
-        bool
-        """
-
-        if not isinstance(embeddings, list):
-            return False
-
-        return all(
-            self.validate_embedding(vector)
-            for vector in embeddings
-        )
-
-    # ============================================================
-    # Get Device
-    # ============================================================
-
-    def get_device(self) -> str:
-        """
-        Return the device currently
-        being used by the embedding model.
-        """
-
-        return DEVICE
-
-    # ============================================================
-    # Get Model Name
-    # ============================================================
-
-    def get_model_name(self) -> str:
-        """
-        Return embedding model name.
-        """
-
-        return MODEL_NAME
-
-    # ============================================================
-    # Health Check
-    # ============================================================
 
     def health_check(self) -> dict:
-        """
-        Verify that the embedding model
-        is loaded and operational.
-        """
-
+        """Verify engine readiness and matrix operations verification."""
         try:
-
-            test_embedding = self.embed_query("health check")
-
+            test_vector = self.embed_query("health check execution context")
             return {
                 "status": "healthy",
                 "model_loaded": True,
-                "embedding_dimension": len(test_embedding),
+                "embedding_dimension": len(test_vector),
                 "device": DEVICE
             }
-
         except Exception as error:
-
-            logger.exception("Embedding health check failed.")
-
+            logger.exception("Embedding hardware execution runtime failure.")
             return {
                 "status": "unhealthy",
                 "model_loaded": False,
@@ -382,6 +138,5 @@ class EmbeddingService:
             }
 
 
-# global instance of EmbeddingService for use across the application
-
+# Single exposed instantiation usable globally across routers and services
 embedding_service = EmbeddingService()
