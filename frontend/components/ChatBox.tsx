@@ -327,7 +327,15 @@ export default function ChatBox({
 
                     value={question}
 
-                    placeholder="Ask a question..."
+                    placeholder={
+
+                        collectionName
+
+                            ? "Ask a question..."
+
+                            : "Upload a document to begin..."
+
+                    }
 
                     onChange={(event) =>
 
@@ -353,13 +361,15 @@ export default function ChatBox({
 
                     }}
 
+                    disabled={!collectionName || loading}
+
                 />
 
                 <button
 
                     onClick={askQuestion}
 
-                    disabled={loading}
+                    disabled={!collectionName || loading}
 
                 >
 
