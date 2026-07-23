@@ -9,8 +9,8 @@ import os
 import logging
 from typing import List, Dict, Any, Tuple
 from openai import OpenAI
-from backend.services.embeddings import embedding_service
-from backend.services.vector_store import VectorStoreService
+from .embeddings import embedding_service
+from .vector_store import VectorStoreService
 
 logger = logging.getLogger(__name__)
 
