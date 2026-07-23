@@ -39,10 +39,9 @@ export default function UploadBox({ onUploadSuccess }: UploadBoxProps) {
         setMessage("");
         setError("");
     }
-
-    // ======================================================
-    // Upload Document
-    // ======================================================
+// ======================================================
+// Upload Document
+// ======================================================
     async function handleUpload() {
         if (!selectedFile) {
             setError("Please select a document.");
@@ -56,9 +55,11 @@ export default function UploadBox({ onUploadSuccess }: UploadBoxProps) {
 
             const response = await apiClient.uploadDocument(selectedFile);
 
-            setCollectionName(response.collection_name);
+            // Fixed: Swapped response.collection_name for response.collection
+            setCollectionName(response.collection);
             setMessage(response.message || "Document uploaded successfully!");
-            onUploadSuccess(response.collection_name);
+            onUploadSuccess(response.collection);
+        
         } catch (err: any) {
             setError(err.message || "Upload failed.");
         } finally {

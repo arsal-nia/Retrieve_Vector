@@ -16,14 +16,16 @@ const API_BASE_URL =
 // Interfaces
 // ==========================================================
 
+// ==========================================================
+// Interfaces
+// ==========================================================
+
 export interface UploadResponse {
-
-    message: string;
-
+    success: boolean;
     filename: string;
-
-    collection_name: string;
-
+    collection: string;
+    chunks: number;
+    message: string;
 }
 
 
