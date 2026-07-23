@@ -16,7 +16,7 @@ from fastapi import (
 
 from pydantic import BaseModel, Field
 
-from backend.services.rag_engine import rag_engine
+from services.rag_engine import rag_engine
 
 
 # ==========================================================
@@ -30,10 +30,7 @@ logger = logging.getLogger(__name__)
 # Router
 # ==========================================================
 
-router = APIRouter(
-    prefix="/chat",
-    tags=["Chat"]
-)
+router = APIRouter()
 
 
 # ==========================================================

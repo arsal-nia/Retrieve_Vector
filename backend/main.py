@@ -75,11 +75,19 @@ async def health_check():
 
 # ==========================================================
 # Register Routers
-# (These will be implemented later)
 # ==========================================================
 
-# from routers.chat import router as chat_router
-# from routers.documents import router as document_router
+from routers.chat import router as chat_router
+from routers.documents import router as document_router
 
-# app.include_router(chat_router, prefix="/chat", tags=["Chat"])
-# app.include_router(document_router, prefix="/documents", tags=["Documents"])
+app.include_router(
+    chat_router,
+    prefix="/chat",
+    tags=["Chat"]
+)
+
+app.include_router(
+    document_router,
+    prefix="/documents",
+    tags=["Documents"]
+)

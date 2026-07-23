@@ -27,9 +27,10 @@ python-dotenv==1.1.1
 # Database (PostgreSQL)
 #########################################################
 
-sqlalchemy==2.0.41
-psycopg2-binary==2.9.10
-alembic==1.16.4
+#sqlalchemy==2.0.41
+#psycopg2-binary==2.9.10
+
+#alembic==1.16.4
 
 #########################################################
 # Authentication & Security

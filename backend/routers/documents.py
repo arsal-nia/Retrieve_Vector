@@ -22,9 +22,9 @@ from fastapi import (
 
 from pydantic import BaseModel
 
-from backend.services.document_parser import document_parser
-from backend.services.embeddings import embedding_service
-from backend.services.vector_store import VectorStoreService
+from services.document_parser import document_parser
+from services.embeddings import embedding_service
+from services.vector_store import VectorStoreService
 
 
 # ==========================================================
@@ -38,10 +38,7 @@ logger = logging.getLogger(__name__)
 # Router
 # ==========================================================
 
-router = APIRouter(
-    prefix="/documents",
-    tags=["Documents"]
-)
+router = APIRouter()
 
 
 # ==========================================================
