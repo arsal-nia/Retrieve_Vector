@@ -8,9 +8,10 @@ Responsibilities:
 - Create FastAPI application
 - Configure CORS
 - Register routers
-- Provide health check endpoint
+- Provide health check endpoint with container environment verification
 """
 
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -64,12 +65,20 @@ async def root():
 @app.get("/health")
 async def health_check():
     """
-    Health check endpoint.
+    Health check endpoint that detects containerized execution.
     """
+    # Double-check environment configuration via the flag or filesystem
+    is_docker_env = os.getenv("IS_DOCKER", "false").lower() == "true"
+    has_docker_file = os.path.exists('/.dockerenv')
+    
+    execution_mode = "Docker Container" if (is_docker_env or has_docker_file) else "Local Host (Normal)"
+    
     return {
         "status": "Healthy",
         "backend": "FastAPI",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "environment": execution_mode,
+        "target_model": os.getenv("LOCAL_MODEL_NAME", "Not Configured")
     }
 
 

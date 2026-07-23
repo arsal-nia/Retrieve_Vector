@@ -7,85 +7,51 @@ services:
   ############################################################
 
   backend:
-
     build:
-
       context: ./backend
-
     container_name: rag_backend
-
     ports:
-
       - "8000:8000"
-
     volumes:
-
       - ./backend:/app
-
       - chroma_data:/app/chroma_db
-
     environment:
-
       VECTOR_DB_PATH: /app/chroma_db
-
-      LOCAL_LLM_URL: http://host.docker.internal:11434/v1
-
-      LOCAL_MODEL_NAME: gemma3
-
+      LOCAL_LLM_URL: http://host.docker.internal:12434/engines/llama.cpp/v1/
+      LOCAL_MODEL_NAME: docker.io/ai/gemma3-qat:latest
+      IS_DOCKER: "true"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: >
-
       uvicorn main:app
-
       --host 0.0.0.0
-
       --port 8000
-
       --reload
-
     restart: unless-stopped
-
-
 
   ############################################################
   # Frontend (Next.js)
   ############################################################
 
   frontend:
-
     build:
-
       context: ./frontend
-
     container_name: rag_frontend
-
     ports:
-
       - "3000:3000"
-
     volumes:
-
       - ./frontend:/app
-
       - /app/node_modules
-
     environment:
-
       NEXT_PUBLIC_API_URL: http://localhost:8000
-
     depends_on:
-
       - backend
-
     command: npm run dev
-
     restart: unless-stopped
-
-
 
 ##############################################################
 # Persistent Storage
 ##############################################################
 
 volumes:
-
   chroma_data:

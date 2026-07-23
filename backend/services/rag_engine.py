@@ -24,11 +24,12 @@ class RagEngineService:
         """Initializes the engine, hooks into the underlying Vector Store, and prepares local environment parameters."""
         self.vector_store = VectorStoreService()
         
-        # Docker Container LLM Configurations (with flexible fallbacks for Ollama or Docker Model Runner)
-        # For standard Ollama inside a container use: http://localhost:11434/v1
-        # For Docker Desktop Model Runner use: http://localhost:12434/engines/v1
-        self.local_url = os.getenv("LOCAL_LLM_URL", "http://localhost:11434/v1")
-        self.model_name = os.getenv("LOCAL_MODEL_NAME", "gemma3")
+        # Updated based on Docker Model Runner specifications
+        # Using host.docker.internal to bridge the container to the host network
+        self.local_url = os.getenv("LOCAL_LLM_URL", "http://host.docker.internal:12434/engines/llama.cpp/v1/")
+        
+        # Updated to match the exact model name shown in Docker Desktop Models UI
+        self.model_name = os.getenv("LOCAL_MODEL_NAME", "docker.io/ai/gemma3-qat:latest")
         
         logger.info(f"RagEngineService initialized. Target Local Engine: {self.local_url} | Model: {self.model_name}")
 
@@ -119,7 +120,7 @@ class RagEngineService:
             # 3. Connect to the OpenAI-compatible endpoint running inside Docker Desktop
             client = OpenAI(
                 base_url=self.local_url,
-                api_key="docker-local-placeholder-token"  # Local endpoints don't need real keys
+                api_key="anything"  # Matches the implementation shown in image_cff1e2.jpg
             )
             
             response = client.chat.completions.create(
