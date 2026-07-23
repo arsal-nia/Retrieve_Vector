@@ -204,13 +204,6 @@ class DocumentParserService:
             "Unsupported document format."
         )
 
-
-# ==========================================================
-# Global Instance
-# ==========================================================
-
-document_parser = DocumentParserService()
-
     # ======================================================
     # Clean Text
     # ======================================================
@@ -531,7 +524,6 @@ document_parser = DocumentParserService()
 # ==========================================================
 
 document_parser = DocumentParserService()
-
 
 # ==========================================================
 # Module Test
