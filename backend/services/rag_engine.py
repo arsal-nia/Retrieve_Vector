@@ -30,6 +30,12 @@ class RagEngineService:
         
         # Updated to match the exact model name shown in Docker Desktop Models UI
         self.model_name = os.getenv("LOCAL_MODEL_NAME", "docker.io/ai/gemma3-qat:latest")
+
+        # Connect to the OpenAI-compatible endpoint running inside Docker Desktop
+        self.client = OpenAI(
+            base_url=self.local_url,
+            api_key="anything"  # Matches the implementation shown in image_cff1e2.jpg
+        )
         
         logger.info(f"RagEngineService initialized. Target Local Engine: {self.local_url} | Model: {self.model_name}")
 
@@ -67,18 +73,43 @@ class RagEngineService:
 
             retrieved_docs: List[str] = search_results["documents"][0]
             retrieved_metadatas: List[Dict[str, Any]] = search_results.get("metadatas", [[]])[0]
+            # ChromaDB returns cosine distance. Similarity = 1 - distance.
+            retrieved_distances: List[float] = search_results.get("distances", [[]])[0]
             
             context_chunks: List[str] = []
             source_metadata: List[Dict[str, Any]] = []
 
-            for idx, doc in enumerate(retrieved_docs):
-                context_chunks.append(doc)
-                if idx < len(retrieved_metadatas) and retrieved_metadatas[idx]:
-                    source_metadata.append(retrieved_metadatas[idx])
+            # 3. Filter results based on the similarity threshold and build context
+            for i, doc in enumerate(retrieved_docs):
+                # Ensure distance is available for the document
+                if i < len(retrieved_distances):
+                    distance = retrieved_distances[i]
+                    similarity = 1 - distance
+                    
+                    if similarity >= similarity_threshold:
+                        context_chunks.append(doc)
+                        if i < len(retrieved_metadatas) and retrieved_metadatas[i]:
+                            # Optionally add similarity score to metadata for transparency
+                            metadata_with_score = retrieved_metadatas[i].copy()
+                            metadata_with_score['similarity_score'] = round(similarity, 4)
+                            source_metadata.append(metadata_with_score)
+                        else:
+                            source_metadata.append({"source": "unknown_chunk", "index": i, 'similarity_score': round(similarity, 4)})
+                    else:
+                        logger.debug(f"Chunk {i} with similarity {similarity:.4f} filtered out (threshold: {similarity_threshold}).")
+                # Fallback if distances are not returned for some reason
                 else:
-                    source_metadata.append({"source": "unknown_chunk", "index": idx})
+                    context_chunks.append(doc)
+                    if i < len(retrieved_metadatas) and retrieved_metadatas[i]:
+                        source_metadata.append(retrieved_metadatas[i])
+                    else:
+                        source_metadata.append({"source": "unknown_chunk", "index": i})
 
-            # 3. Flatten the isolated text chunks into a unified context block
+            if not context_chunks:
+                logger.info(f"No context chunks met the similarity threshold of {similarity_threshold}.")
+                return "", []
+
+            # 4. Flatten the isolated text chunks into a unified context block
             formatted_context = "\n\n---\n\n".join(context_chunks)
             logger.info(f"Successfully compiled {len(context_chunks)} source chunks into context payload.")
             
@@ -117,13 +148,7 @@ class RagEngineService:
         try:
             logger.info(f"Routing structured RAG prompt directly to local container engine model: {self.model_name}")
             
-            # 3. Connect to the OpenAI-compatible endpoint running inside Docker Desktop
-            client = OpenAI(
-                base_url=self.local_url,
-                api_key="anything"  # Matches the implementation shown in image_cff1e2.jpg
-            )
-            
-            response = client.chat.completions.create(
+            response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
                 temperature=0.3
@@ -141,7 +166,7 @@ class RagEngineService:
         except Exception as e:
             logger.error(f"Execution runtime error when communicating with local container LLM: {str(e)}")
             return {
-                "answer": f"Retrieval executed perfectly, but generating the answer failed. (Is your Docker container model running?): {str(e)}",
+                "answer": "Failed to generate an answer. Please check the system logs for more details.",
                 "sources": metadata,
                 "context_retrieved": bool(context)
             }
