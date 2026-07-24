@@ -44,7 +44,7 @@ class RagEngineService:
         query: str, 
         collection_name: str, 
         top_k: int = 4,
-        similarity_threshold: float = 0.7
+        similarity_threshold: float = 0.2
     ) -> Tuple[str, List[Dict[str, Any]]]:
         """
         Orchestrates the retrieval leg of the RAG pipeline.
@@ -78,18 +78,23 @@ class RagEngineService:
             
             context_chunks: List[str] = []
             source_metadata: List[Dict[str, Any]] = []
+            best_index: int | None = None
+            best_similarity: float = -1.0
 
-            # 3. Filter results based on the similarity threshold and build context
+            # 3. Filter results based on the similarity threshold and build context.
+            # If the top hit is still relevant but below the strict threshold, fall back to it so
+            # the model can still answer from the uploaded document instead of an empty context.
             for i, doc in enumerate(retrieved_docs):
-                # Ensure distance is available for the document
                 if i < len(retrieved_distances):
                     distance = retrieved_distances[i]
                     similarity = 1 - distance
-                    
+                    if similarity > best_similarity:
+                        best_similarity = similarity
+                        best_index = i
+
                     if similarity >= similarity_threshold:
                         context_chunks.append(doc)
                         if i < len(retrieved_metadatas) and retrieved_metadatas[i]:
-                            # Optionally add similarity score to metadata for transparency
                             metadata_with_score = retrieved_metadatas[i].copy()
                             metadata_with_score['similarity_score'] = round(similarity, 4)
                             source_metadata.append(metadata_with_score)
@@ -97,7 +102,6 @@ class RagEngineService:
                             source_metadata.append({"source": "unknown_chunk", "index": i, 'similarity_score': round(similarity, 4)})
                     else:
                         logger.debug(f"Chunk {i} with similarity {similarity:.4f} filtered out (threshold: {similarity_threshold}).")
-                # Fallback if distances are not returned for some reason
                 else:
                     context_chunks.append(doc)
                     if i < len(retrieved_metadatas) and retrieved_metadatas[i]:
@@ -105,8 +109,17 @@ class RagEngineService:
                     else:
                         source_metadata.append({"source": "unknown_chunk", "index": i})
 
+            if not context_chunks and best_index is not None:
+                fallback_doc = retrieved_docs[best_index]
+                fallback_metadata = retrieved_metadatas[best_index] if best_index < len(retrieved_metadatas) and retrieved_metadatas[best_index] else {"source": "unknown_chunk", "index": best_index}
+                fallback_metadata = fallback_metadata.copy()
+                fallback_metadata['similarity_score'] = round(best_similarity, 4)
+                context_chunks.append(fallback_doc)
+                source_metadata.append(fallback_metadata)
+                logger.info("No chunks met the configured similarity threshold, but a best-match chunk was used as fallback context.")
+
             if not context_chunks:
-                logger.info(f"No context chunks met the similarity threshold of {similarity_threshold}.")
+                logger.info(f"No context chunks were available for collection '{collection_name}'.")
                 return "", []
 
             # 4. Flatten the isolated text chunks into a unified context block

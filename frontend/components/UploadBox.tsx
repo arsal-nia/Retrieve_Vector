@@ -1,15 +1,6 @@
 "use client";
 
-/**
- * ==========================================================
- * UploadBox.tsx
- * ----------------------------------------------------------
- * Component responsible for uploading documents to the
- * FastAPI backend.
- * ==========================================================
- */
-
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { apiClient } from "@/lib/api-client";
 
 interface UploadBoxProps {
@@ -22,13 +13,8 @@ export default function UploadBox({ onUploadSuccess }: UploadBoxProps) {
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
     const [collectionName, setCollectionName] = useState("");
-
-    // Use a ref so we can physically clear the file input field in the DOM
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // ======================================================
-    // File Selection
-    // ======================================================
     function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
         const files = event.target.files;
         if (!files || files.length === 0) {
@@ -39,12 +25,10 @@ export default function UploadBox({ onUploadSuccess }: UploadBoxProps) {
         setMessage("");
         setError("");
     }
-// ======================================================
-// Upload Document
-// ======================================================
+
     async function handleUpload() {
         if (!selectedFile) {
-            setError("Please select a document.");
+            setError("Please select a document first.");
             return;
         }
 
@@ -54,12 +38,9 @@ export default function UploadBox({ onUploadSuccess }: UploadBoxProps) {
             setMessage("");
 
             const response = await apiClient.uploadDocument(selectedFile);
-
-            // Fixed: Swapped response.collection_name for response.collection
             setCollectionName(response.collection);
-            setMessage(response.message || "Document uploaded successfully!");
+            setMessage(response.message || "Document uploaded successfully.");
             onUploadSuccess(response.collection);
-        
         } catch (err: any) {
             setError(err.message || "Upload failed.");
         } finally {
@@ -67,94 +48,67 @@ export default function UploadBox({ onUploadSuccess }: UploadBoxProps) {
         }
     }
 
-    // ======================================================
-    // Reset
-    // ======================================================
     function resetUpload() {
         setSelectedFile(null);
         setCollectionName("");
         setMessage("");
         setError("");
-        
-        // Clear the actual DOM element
+
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
         }
-        
-        // Inform the parent component to lock the chat again
+
         onUploadSuccess("");
     }
 
-    // Determine if an upload has already been completed successfully
     const isUploaded = !!collectionName;
 
-    // ======================================================
-    // UI
-    // ======================================================
     return (
-        <div
-            style={{
-                border: "1px solid #ddd",
-                padding: "20px",
-                borderRadius: "10px",
-                marginBottom: "20px",
-            }}
-        >
-            <h2>Upload Document</h2>
-            <p>Supported formats: PDF, DOCX and TXT</p>
+        <div className="upload-card">
+            <div className="card-header">
+                <div>
+                    <p className="eyebrow">Knowledge Base</p>
+                    <h2>Upload a document</h2>
+                </div>
+                <span className="pill">PDF / DOCX / TXT</span>
+            </div>
 
-            <input
-                type="file"
-                accept=".pdf,.docx,.txt"
-                onChange={handleFileChange}
-                ref={fileInputRef}
-                // Disable file selection while uploading or if already uploaded
-                disabled={uploading || isUploaded} 
-            />
+            <p className="muted">Add a file to build a searchable memory for your assistant.</p>
 
-            <br /><br />
+            <label className="file-picker">
+                <input
+                    type="file"
+                    accept=".pdf,.docx,.txt"
+                    onChange={handleFileChange}
+                    ref={fileInputRef}
+                    disabled={uploading || isUploaded}
+                />
+                <span>{selectedFile ? `Selected: ${selectedFile.name}` : "Choose a file"}</span>
+            </label>
 
             {selectedFile && (
-                <div>
-                    <strong>Selected File:</strong><br />
-                    {selectedFile.name}<br />
-                    {(selectedFile.size / 1024).toFixed(2)} KB
-                </div>
-            )}
-            <br />
-
-            <button
-                onClick={handleUpload}
-                // Lock the upload button if loading, no file is selected, or it's already uploaded
-                disabled={uploading || !selectedFile || isUploaded}
-            >
-                {uploading ? "Uploading..." : isUploaded ? "Uploaded" : "Upload"}
-            </button>
-
-            <button
-                onClick={resetUpload}
-                style={{ marginLeft: "10px" }}
-                disabled={uploading}
-            >
-                Reset
-            </button>
-
-            {message && (
-                <div style={{ marginTop: "20px", color: "green" }}>
-                    <strong>Success</strong><br />{message}
+                <div className="file-meta">
+                    <strong>{selectedFile.name}</strong>
+                    <span>{(selectedFile.size / 1024).toFixed(2)} KB</span>
                 </div>
             )}
 
-            {error && (
-                <div style={{ marginTop: "20px", color: "red" }}>
-                    <strong>Error</strong><br />{error}
-                </div>
-            )}
-            
-            {/* You can remove this block if you don't want to display the raw collection ID in the UI */}
+            <div className="action-row">
+                <button onClick={handleUpload} disabled={uploading || !selectedFile || isUploaded}>
+                    {uploading ? "Uploading..." : isUploaded ? "Uploaded" : "Upload"}
+                </button>
+                <button className="secondary" onClick={resetUpload} disabled={uploading}>
+                    Reset
+                </button>
+            </div>
+
+            {message && <div className="success-box">{message}</div>}
+            {error && <div className="error-box">{error}</div>}
+
             {collectionName && (
-                <div style={{ marginTop: "20px", backgroundColor: "#f3f4f6", padding: "10px", borderRadius: "6px" }}>
-                    <strong>Collection:</strong><br />{collectionName}
+                <div className="collection-box">
+                    <strong>Collection ready:</strong>
+                    <span>{collectionName}</span>
                 </div>
             )}
         </div>

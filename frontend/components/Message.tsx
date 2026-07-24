@@ -1,105 +1,28 @@
 "use client";
 
-/**
- * ==========================================================
- * Message.tsx
- * ----------------------------------------------------------
- * Reusable component for displaying a single chat message.
- * It supports both user and AI assistant messages.
- * ==========================================================
- */
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface MessageProps {
-
     role: "user" | "assistant";
-
     content: string;
-
 }
 
-export default function Message({
-
-    role,
-
-    content
-
-}: MessageProps) {
-
+export default function Message({ role, content }: MessageProps) {
     const isUser = role === "user";
 
     return (
-
-        <div
-
-            style={{
-
-                display: "flex",
-
-                justifyContent: isUser
-                    ? "flex-end"
-                    : "flex-start",
-
-                marginBottom: "15px"
-
-            }}
-
-        >
-
-            <div
-
-                style={{
-
-                    maxWidth: "75%",
-
-                    padding: "12px",
-
-                    borderRadius: "10px",
-
-                    backgroundColor: isUser
-                        ? "#2563eb"
-                        : "#e5e7eb",
-
-                    color: isUser
-                        ? "#ffffff"
-                        : "#111827",
-
-                    whiteSpace: "pre-wrap",
-
-                    wordBreak: "break-word",
-
-                    boxShadow:
-                        "0px 2px 6px rgba(0,0,0,0.15)"
-
-                }}
-
-            >
-
-                <div
-
-                    style={{
-
-                        fontWeight: "bold",
-
-                        marginBottom: "6px"
-
-                    }}
-
-                >
-
-                    {isUser ? "You" : "AI Assistant"}
-
+        <div className={`message-row ${isUser ? "is-user" : "is-assistant"}`}>
+            <div className={`message-bubble ${isUser ? "user" : "assistant"}`}>
+                <div className="message-meta">{isUser ? "You" : "Assistant"}</div>
+                <div className="message-content">
+                    {isUser ? (
+                        <div>{content}</div>
+                    ) : (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                    )}
                 </div>
-
-                <div>
-
-                    {content}
-
-                </div>
-
             </div>
-
         </div>
-
     );
-
 }
