@@ -3,24 +3,28 @@
 import { useState, type FormEvent, type KeyboardEvent } from "react";
 import { apiClient, type SourceMetadata } from "@/lib/api-client";
 import Message from "./Message";
+import { ChatMessage } from "@/lib/chat-types";
 
 interface ChatBoxProps {
     collectionName: string;
+    messages: ChatMessage[];
+    setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 }
 
-interface ChatMessage {
-    role: "user" | "assistant";
-    content: string;
-}
+
 
 interface ChatStatusInfo {
     contextRetrieved: boolean;
     collectionName: string;
 }
 
-export default function ChatBox({ collectionName }: ChatBoxProps) {
+export default function ChatBox({
+    collectionName,
+    messages,
+    setMessages,
+}: ChatBoxProps) {
     const [question, setQuestion] = useState("");
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    
     const [sources, setSources] = useState<SourceMetadata[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -91,83 +95,147 @@ export default function ChatBox({ collectionName }: ChatBoxProps) {
     }
 
     return (
-        <div className="chat-card">
-            <div className="card-header">
-                <div>
-                    <p className="eyebrow">Conversation</p>
-                    <h2>Ask your document anything</h2>
-                </div>
-                <span className="pill">Live chat</span>
-            </div>
+    <div className="chat-card">
 
-            {!collectionName && <div className="warning-box">Upload a document to unlock the chat experience.</div>}
+        <div className="card-header">
 
-            {collectionName && (
-                <div className="warning-box">
-                    Active collection: <strong>{chatStatus.collectionName}</strong> · Context retrieved: <strong>{chatStatus.contextRetrieved ? "Yes" : "No"}</strong>
-                </div>
-            )}
+    <div className="chat-header">
 
-            <div className="chat-window">
-                {messages.length === 0 ? (
-                    <div className="empty-state">
-                        <h3>Start a new conversation</h3>
-                        <p>Use the prompt suggestions below or ask a specific question about your uploaded content.</p>
-                    </div>
-                ) : (
-                    messages.map((message, index) => <Message key={`${message.role}-${index}`} role={message.role} content={message.content} />)
-                )}
-
-                {loading && (
-                    <div className="typing-indicator" aria-live="polite">
-                        <span />
-                        <span />
-                        <span />
-                    </div>
-                )}
-            </div>
-
-            {sources.length > 0 && (
-                <div className="sources-row">
-                    {sources.map((source, index) => (
-                        <span key={`${source.source || "source"}-${index}`} className="source-chip">
-                            {source.source || `Source ${index + 1}`}
-                        </span>
-                    ))}
-                </div>
-            )}
-
-            <form onSubmit={askQuestion} className="composer">
-                <div className="composer-shell">
-                    <textarea
-                        value={question}
-                        onChange={(event) => setQuestion(event.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder={collectionName ? "Ask a question about your document..." : "Upload a document to begin"}
-                        disabled={!collectionName || loading}
-                        rows={3}
-                    />
-                    <button type="submit" disabled={!collectionName || loading}>
-                        {loading ? "Thinking..." : "Send"}
-                    </button>
-                </div>
-
-                <div className="prompt-row">
-                    {suggestedPrompts.map((prompt) => (
-                        <button
-                            key={prompt}
-                            type="button"
-                            className="prompt-chip"
-                            onClick={() => setQuestion(prompt)}
-                            disabled={!collectionName || loading}
-                        >
-                            {prompt}
-                        </button>
-                    ))}
-                </div>
-            </form>
-
-            {error && <div className="error-box">{error}</div>}
+        <div className="chat-avatar">
+            🤖
         </div>
-    );
+
+        <div>
+
+            <h2>Retrieve Vector</h2>
+
+            <p className="muted">
+                AI Assistant for your documents
+            </p>
+
+        </div>
+
+    </div>
+
+    {collectionName && (
+
+        <div className="status-pill success">
+
+            Connected
+
+        </div>
+
+    )}
+
+</div>
+
+        {!collectionName && (
+            <div className="warning-box">
+                Upload a document to begin chatting.
+            </div>
+        )}
+
+        {/* Messages */}
+        <div className="chat-window">
+
+            {messages.length === 0 ? (
+                <div className="empty-state">
+
+    <div className="empty-icon">
+        
+    </div>
+
+    <h2>
+        How can I help you today?
+    </h2>
+
+    <p>
+        Upload a document and start chatting with your AI assistant.
+    </p>
+
+</div>
+            ) : (
+                messages.map((message, index) => (
+                    <Message
+                        key={`${message.role}-${index}`}
+                        role={message.role}
+                        content={message.content}
+                    />
+                ))
+            )}
+
+            {loading && (
+                <div className="typing-indicator">
+                    <span />
+                    <span />
+                    <span />
+                </div>
+            )}
+
+        </div>
+
+       
+        
+
+        {/* Composer */}
+
+        <form
+            onSubmit={askQuestion}
+            className="composer"
+        >
+
+            <div className="composer-shell">
+
+                <textarea
+                    value={question}
+                    onChange={(event) =>
+                        setQuestion(event.target.value)
+                    }
+                    onKeyDown={handleKeyDown}
+                    placeholder={
+    loading
+        ? "Thinking..."
+        : collectionName
+            ? "Message Retrieve Vector..."
+            : "Upload a document first..."
+}
+                    disabled={!collectionName || loading}
+                    rows={2}
+                />
+
+                <button
+    type="submit"
+    disabled={!collectionName || loading}
+>
+    ➤
+</button>
+
+            </div>
+
+            <div className="prompt-row">
+
+                {suggestedPrompts.map((prompt) => (
+                    <button
+                        key={prompt}
+                        type="button"
+                        className="prompt-chip"
+                        onClick={() => setQuestion(prompt)}
+                        disabled={!collectionName || loading}
+                    >
+                        {prompt}
+                    </button>
+                ))}
+
+            </div>
+
+        </form>
+
+        {error && (
+            <div className="error-box">
+                {error}
+            </div>
+        )}
+
+    </div>
+);
 }
