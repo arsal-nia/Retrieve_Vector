@@ -59,12 +59,8 @@ const [uploadedFileName, setUploadedFileName] = useState("");
 
             {/* Logo / Title */}
             <div className="sidebar-header">
-                <p className="eyebrow">RAG Assistant</p>
-                <h2>Retrieve Vector</h2>
-                <p className="sidebar-copy">
-                    Chat with your documents
-                </p>
-            </div>
+    <h2>Retrieve Vector</h2>
+</div>
             
 
              <button

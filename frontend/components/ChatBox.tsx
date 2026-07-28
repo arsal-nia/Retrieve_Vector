@@ -101,19 +101,9 @@ export default function ChatBox({
 
     <div className="chat-header">
 
-        <div className="chat-avatar">
-            🤖
-        </div>
+        
 
-        <div>
-
-            <h2>Retrieve Vector</h2>
-
-            <p className="muted">
-                AI Assistant for your documents
-            </p>
-
-        </div>
+        
 
     </div>
 

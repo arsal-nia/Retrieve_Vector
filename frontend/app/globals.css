@@ -458,21 +458,17 @@ img {
    MAIN CONTENT
 =========================== */
 
-.main-panel{
+.main-panel {
+    flex: 1;
 
-    flex:1;
+    display: flex;
+    flex-direction: column;
 
-    display:flex;
+    overflow: hidden;
 
-    flex-direction:column;
-
-    gap:24px;
-
-    padding:28px;
-
-    overflow:hidden;
+    height: 100vh;      /* Add this */
+    padding: 0;
 }
-
 
 /* ===========================
    PAGE SECTIONS
@@ -614,7 +610,7 @@ img {
 
 .chat-card{
 
-    padding:24px;
+    padding:18px;
 }
 .upload-button {
     width: 100%;
@@ -724,10 +720,7 @@ img {
         height:auto;
     }
 
-    .main-panel{
-
-        padding:18px;
-    }
+    
 
 }
 
@@ -1283,16 +1276,7 @@ img {
 =========================== */
 
 /* Main Workspace Card */
-.chat-card {
-  padding: 24px;
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
+
 
 /* Sidebar Knowledge Base Box */
 .upload-card-compact {
@@ -1572,23 +1556,18 @@ img {
    CHAT CARD
 =========================== */
 
-.chat-card{
+.chat-card {
+    flex: 1;
 
-    display:flex;
+    display: flex;
+    flex-direction: column;
 
-    flex-direction:column;
+    width: 100%;
+    height: 100%;
 
-    padding:24px;
+    overflow: hidden;
 
-    background:var(--surface);
-
-    border:1px solid var(--border);
-
-    border-radius:18px;
-
-    box-shadow:var(--shadow-sm);
-
-    min-height:600px;
+    background: white;
 }
 
 
@@ -1596,25 +1575,23 @@ img {
    CHAT WINDOW
 =========================== */
 
-.chat-window{
+.chat-window {
 
-    flex:1;
+    flex: 1;
 
-    display:flex;
+    overflow-y: auto;
 
-    flex-direction:column;
+    min-height: 0;
 
-    gap:18px;
+    display: flex;
 
-    min-height:420px;
+    flex-direction: column;
 
-    max-height:650px;
+    gap: 18px;
 
-    overflow-y:auto;
+    padding: 12px 6px;
 
-    padding:12px 6px;
-
-    scroll-behavior:smooth;
+    scroll-behavior: smooth;
 }
 
 
@@ -2026,6 +2003,7 @@ img {
 ========================================================== */
 
 .composer {
+    flex-shrink: 0;
     margin-top: 20px;
 }
 

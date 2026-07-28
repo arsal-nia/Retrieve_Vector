@@ -86,6 +86,17 @@ const currentConversation =
 }
 
 function createNewConversation() {
+
+    // Check the current conversation
+    const current = conversations.find(
+        conversation => conversation.id === currentConversationId
+    );
+
+    // If the current conversation is empty, don't create another one
+    if (current && current.messages.length === 0) {
+        return;
+    }
+
     const newConversation: Conversation = {
         id: crypto.randomUUID(),
         title: "New Chat",
