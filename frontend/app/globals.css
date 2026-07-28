@@ -461,14 +461,17 @@ img {
 .main-panel {
     flex: 1;
 
-    display: flex;
-    flex-direction: column;
+    display:flex;
 
-    overflow: hidden;
+    flex-direction:column;
 
-    height: 100vh;      /* Add this */
-    padding: 0;
+    gap:24px;
+
+    padding:28px;
+
+    overflow:hidden;
 }
+
 
 /* ===========================
    PAGE SECTIONS
@@ -492,7 +495,16 @@ img {
 
 .upload-card,
 
-.chat-card,
+.chat-card{
+
+    flex:1;
+
+    display:flex;
+
+    flex-direction:column;
+
+    overflow:hidden;
+}
 
 .sidebar-card{
 
@@ -1575,24 +1587,27 @@ img {
    CHAT WINDOW
 =========================== */
 
-.chat-window {
+.chat-window{
 
-    flex: 1;
+    flex:1;
 
-    overflow-y: auto;
+    display:flex;
 
-    min-height: 0;
+    flex-direction:column;
 
-    display: flex;
+    gap:18px;
 
-    flex-direction: column;
+    min-height:420px;
 
-    gap: 18px;
+    max-height:650px;
 
-    padding: 12px 6px;
+    overflow-y:auto;
 
-    scroll-behavior: smooth;
+    padding:12px 6px;
+
+    scroll-behavior:smooth;
 }
+
 
 
 /* ===========================
@@ -2003,7 +2018,6 @@ img {
 ========================================================== */
 
 .composer {
-    flex-shrink: 0;
     margin-top: 20px;
 }
 

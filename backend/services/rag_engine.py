@@ -4,7 +4,7 @@ rag_engine.py
 Central orchestration engine for the RAG pipeline. Coordinates text embedding,
 semantic vector searching, context formatting, and LLM text generation.
 """
-
+''' prompt engineering and context injection - 2 things to check now'''
 import os
 import logging
 from typing import List, Dict, Any, Tuple
