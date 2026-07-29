@@ -2044,7 +2044,7 @@ min-height: 0;
 
     border-radius: 50%;
 
-    background: var(--primary);
+    background: #1F2937;
     color: white;
 
     font-size: 20px;
@@ -2148,7 +2148,7 @@ min-height: 0;
 }
 .prompt-chip {
 
-    background: #9EA6B1;
+    background: #4B5A73;
 
     color: white;
 
