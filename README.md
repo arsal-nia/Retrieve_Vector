@@ -41,19 +41,19 @@ In addition to document-based question answering, the system maintains chat hist
 
 ## Home Screen
 
-![Home Screen](../screenshots/home-page.png)
+![Home Screen](screenshots/home-page.png)
 
 ## Upload Document
 
-![Upload Document](../screenshots/upload-document.png)
+![Upload Document](screenshots/upload-document.png)
 
 ## Chat
 
-![Chat](../screenshots/chat.png)
+![Chat](screenshots/chat.png)
 
 ## Chat History
 
-![Chat History](../screenshots/chat-history.png)
+![Chat History](screenshots/chat-history.png)
 ---
 ## Problem Statement
 
