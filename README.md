@@ -89,6 +89,14 @@ The project aims to:
 -  Context-aware responses generated only from uploaded documents.
 -  Modern and responsive user interface.
 
+  ### Upload Document
+
+![Upload Document](screenshots/upload-document-rec.mp4)
+
+### Chat
+
+![Chat](screenshots/chat-rec.mp4)
+
 ---
 
 # Technology Stack
