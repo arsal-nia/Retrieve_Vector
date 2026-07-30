@@ -12,6 +12,10 @@ from openai import OpenAI
 from .embeddings import embedding_service
 from .vector_store import VectorStoreService
 
+from .external_apis import external_api_service
+from .scraper import web_scraper
+from .youtube import youtube_service
+
 logger = logging.getLogger(__name__)
 
 class RagEngineService:
@@ -23,7 +27,12 @@ class RagEngineService:
     def __init__(self) -> None:
         """Initializes the engine, hooks into the underlying Vector Store, and prepares local environment parameters."""
         self.vector_store = VectorStoreService()
-        
+
+        # --- NEW SERVICE INITIALIZATION ---
+        self.external_api = external_api_service
+        self.scraper = web_scraper
+        self.youtube = youtube_service
+
         # Updated based on Docker Model Runner specifications
         # Using host.docker.internal to bridge the container to the host network
         self.local_url = os.getenv("LOCAL_LLM_URL", "http://host.docker.internal:12434/engines/llama.cpp/v1/")
@@ -151,11 +160,50 @@ class RagEngineService:
         """
         Complete end-to-end RAG lifecycle loop execution.
         Extracts contextual document segments, constructs prompts, and routes them to Gemma 3.
+        Always fetches complementary web articles and YouTube videos as standard suggestions
+        using sanitized keywords to ensure relevant and unbroken links.
         """
         # 1. Fetch matching factual data blocks from local vector database
         context, metadata = self.retrieve_relevant_context(query, collection_name)
+        context_source = "local_vector_db"
+        suggested_articles = []
+        suggested_videos = []
         
-        # 2. Build structured message schemas
+        # ------------------------------------------------------
+        # Search Query Sanitization 
+        # ------------------------------------------------------
+        search_keywords = extract_search_keywords(query)
+        logger.info(f"Cleaned search keywords for external APIs: '{search_keywords}'")
+
+        # ------------------------------------------------------
+        # Fallback Trigger: If local database text is empty
+        # ------------------------------------------------------
+        if not context:
+            logger.info("Local context empty. Triggering external fallback APIs for context injection...")
+            context_source = "external_apis"
+            wiki_res = self.external_api.search_wikipedia(search_keywords)
+            
+            if wiki_res.get("success") and wiki_res.get("content"):
+                context += f"\n[Wikipedia]: {wiki_res['content']}\n"
+                suggested_articles.append({
+                    "title": f"Wikipedia: {wiki_res.get('title', 'Article')}",
+                    "link": wiki_res.get("url", "")
+                })
+
+        # ------------------------------------------------------
+        # Fetch YouTube Suggestions Safely
+        # ------------------------------------------------------
+        yt_results = self.youtube.search_videos(search_keywords, limit=2)
+        
+        if yt_results:
+            for video in yt_results:
+                suggested_videos.append({
+                    "title": video.get("title"),
+                    "link": video.get("url"),
+                    "channel": video.get("channel")
+                })
+
+        # 2. Build structured message schemas (Using the FULL original query for the LLM)
         messages = self.construct_augmented_prompt(query, context)
         
         try:
@@ -166,23 +214,60 @@ class RagEngineService:
                 messages=messages,
                 temperature=0.3
             )
-            
             answer = response.choices[0].message.content
-            logger.info("Generation loop completed successfully. Returning compiled payload.")
-            
-            return {
-                "answer": answer,
-                "sources": metadata,
-                "context_retrieved": bool(context)
-            }
+            logger.info("Generation loop completed successfully.")
             
         except Exception as e:
             logger.error(f"Execution runtime error when communicating with local container LLM: {str(e)}")
-            return {
-                "answer": "Failed to generate an answer. Please check the system logs for more details.",
-                "sources": metadata,
-                "context_retrieved": bool(context)
+            answer = "The local model server encountered a connection error, but here are some discovered web resources for your query:"
+
+        # ------------------------------------------------------
+        # 3. Direct Chat Text Injection (Markdown Appendix)
+        # ------------------------------------------------------
+        if suggested_articles or suggested_videos:
+            answer += "\n\n---\n### 📚 Recommended Resources\n"
+            
+            if suggested_articles:
+                answer += "\n**Articles & References:**\n"
+                for art in suggested_articles:
+                    answer += f"- [{art['title']}]({art['link']})\n"
+            
+            if suggested_videos:
+                answer += "\n**Video Guides:**\n"
+                for vid in suggested_videos:
+                    channel_info = f" ({vid['channel']})" if vid.get('channel') else ""
+                    answer += f"- [{vid['title']}]({vid['link']}){channel_info}\n"
+
+        # 4. Return unified payload
+        return {
+            "answer": answer,
+            "sources": metadata,
+            "context_retrieved": bool(context),
+            "context_source": context_source,
+            "suggestions": {
+                "articles": suggested_articles,
+                "videos": suggested_videos
             }
+        }
+
+def extract_search_keywords(query: str) -> str:
+
+        # Common conversational filler to ignore
+        stop_words = {
+        "i", "me", "my", "we", "you", "your", "he", "she", "it", "they", "them", 
+        "what", "which", "who", "how", "why", "where", "when", "is", "are", "was", 
+        "were", "be", "do", "does", "did", "have", "has", "a", "an", "the", "and", 
+        "but", "if", "or", "because", "as", "of", "at", "by", "for", "with", "about", 
+        "to", "from", "in", "out", "on", "can", "will", "just", "should", "now", 
+        "okay", "let's", "lets", "break", "down", "tell", "explain", "help"
+        }
+    
+        # Remove basic punctuation and split
+        clean_query = query.replace(',', '').replace('.', '').replace('?', '').replace('!', '')
+        words = [w for w in clean_query.split() if w.lower() not in stop_words]
+    
+        # Return up to the first 5 meaningful keywords, or a sliced fallback
+        return " ".join(words[:5]) if words else query[:30]
 
 # Global service instance instantiation ready for import in routers
 rag_engine = RagEngineService()
