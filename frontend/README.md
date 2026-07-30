@@ -628,7 +628,7 @@ The home page presents a clean chat interface where users can upload documents a
 
 ## Home Screen
 
-![Home Screen](screenshots/home-page.png)
+![Home Screen](../screenshots/home-page.png)
 
 
 ---
