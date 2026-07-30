@@ -95,7 +95,7 @@ The project aims to:
 
 ### Chat
 
-![Chat](screenshots/chat-rec.mp4)
+![Chat](screenshots/chat-recording.gif)
 
 ---
 
