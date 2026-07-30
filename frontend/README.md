@@ -19,6 +19,12 @@
 | Document Formats | PDF, DOCX |
 
 # Table Of Contents
+-  [Project Overview](#project-overview)
+-  [Installation Guide](#installation-guide)
+-  [User Guide](#user-guide)
+-  [System Architecture](#system-architecture)
+-  [Technology Stack](#technology-stack)
+-  [API Overview](#api-overview)
 
 ## Project Overview
 
@@ -31,7 +37,26 @@ The application is designed to simplify document exploration by enabling users t
 In addition to document-based question answering, the system maintains chat history, allowing users to revisit previous conversations without losing context.
 
 ---
+---
 
+
+
+## Home Screen
+
+![Home Screen](../screenshots/home-page.png)
+
+## Upload Document
+
+![Upload Document](../screenshots/upload-document.png)
+
+## Chat
+
+![Chat](../screenshots/chat.png)
+
+## Chat History
+
+![Chat History](../screenshots/chat-history.png)
+---
 ## Problem Statement
 
 Reading lengthy documents to locate specific information can be time-consuming and inefficient.
@@ -57,14 +82,14 @@ The project aims to:
 
 ## Core Features
 
-- 📄 Upload supported documents.
-- 🔍 Semantic search over document contents.
-- 🤖 AI-powered question answering using Retrieval-Augmented Generation (RAG).
-- 💬 Interactive chat interface.
-- 📝 Persistent chat history.
-- ⚡ Fast document retrieval using vector embeddings.
-- 🎯 Context-aware responses generated only from uploaded documents.
-- 🎨 Modern and responsive user interface.
+-  Upload supported documents.
+-  Semantic search over document contents.
+-  AI-powered question answering using Retrieval-Augmented Generation (RAG).
+-  Interactive chat interface.
+-  Persistent chat history.
+-  Fast document retrieval using vector embeddings.
+-  Context-aware responses generated only from uploaded documents.
+-  Modern and responsive user interface.
 
 ---
 
@@ -295,7 +320,6 @@ Retrieve Vector uses a Retrieval-Augmented Generation (RAG) pipeline to overcome
 | Generic responses | Context-aware responses |
 | No document understanding | Semantic understanding of uploaded files |
 | Cannot cite uploaded content | Uses retrieved document chunks as context |
-
 
 
 # Project Structure
@@ -623,12 +647,8 @@ The home page presents a clean chat interface where users can upload documents a
 
 ---
 
-### Screenshot Placeholder
 
 
-## Home Screen
-
-![Home Screen](../screenshots/home-page.png)
 
 
 ---
@@ -655,19 +675,9 @@ Once processing finishes, the document becomes available for question answering.
 
 ---
 
-### Screenshot Placeholder
-
-```
-[Insert Document Upload Screenshot]
-```
 
 ---
 
-### Screen Recording Placeholder
-
-```
-[Insert Document Upload Recording]
-```
 
 ---
 
@@ -687,19 +697,10 @@ The system searches only the uploaded document and generates responses based on 
 
 ---
 
-### Screenshot Placeholder
 
-```
-[Insert Question Answering Screenshot]
-```
 
 ---
 
-### Screen Recording Placeholder
-
-```
-[Insert Chat Demonstration]
-```
 
 ---
 
@@ -713,11 +714,6 @@ This approach improves response accuracy and reduces the likelihood of hallucina
 
 ---
 
-### Screenshot Placeholder
-
-```
-[Insert AI Response Screenshot]
-```
 
 ---
 
@@ -741,19 +737,9 @@ This allows documents to be explored over multiple sessions without restarting t
 
 ---
 
-### Screenshot Placeholder
 
-```
-[Insert Chat History Screenshot]
-```
 
 ---
-
-### Screen Recording Placeholder
-
-```
-[Insert Chat History Recording]
-```
 
 ---
 
@@ -868,16 +854,15 @@ This project was built using the following open-source technologies:
 
 # Author
 
-**Muhammad Arsal**
-**Ameema Iman**
+- **Muhammad Arsal**
+- **Ameema Iman**
 
 BS Data Science
 
 COMSATS University Islamabad
 
-GitHub: https://github.com/your-username
+GitHub: https://github.com/arsal-nia/Retrieve_Vector
 
-LinkedIn: https://linkedin.com/in/your-profile
 
 
 
